@@ -215,6 +215,7 @@ html {
 
 .company-tagline {
     position: absolute;
+    margin-top: 40px;
     top: calc(100% + 70px);
     left: 50%;
     transform: translateX(-50%);
