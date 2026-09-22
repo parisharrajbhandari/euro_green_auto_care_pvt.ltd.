@@ -20,9 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (personNameEl) personNameEl.textContent = cfg.person.fullName;
     if (personTitleEl) personTitleEl.textContent = cfg.person.title;
 
-    // --- First Page: Company Name (shown on logo page) ---
+    // --- First Page: Company Name & Tagline (shown on logo page) ---
     const companyNameEl = document.getElementById('company-name');
     if (companyNameEl) companyNameEl.textContent = cfg.company.name;
+
+    const companyTaglineEl = document.getElementById('company-tagline');
+    if (companyTaglineEl) companyTaglineEl.textContent = cfg.company.tagline;
+
 
     // --- About Section ---
     const aboutHeadingEl = document.getElementById('about-heading');
@@ -79,10 +83,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (scrollPosition > headerThreshold) {
             header.classList.add('scrolled');
             if (companyNameEl) companyNameEl.classList.add('hidden');
+            if (companyTaglineEl) companyTaglineEl.classList.add('hidden');
             if (scrollIndicator) scrollIndicator.classList.add('hidden');
         } else {
             header.classList.remove('scrolled');
             if (companyNameEl) companyNameEl.classList.remove('hidden');
+            if (companyTaglineEl) companyTaglineEl.classList.remove('hidden');
             if (scrollIndicator) scrollIndicator.classList.remove('hidden');
         }
 
