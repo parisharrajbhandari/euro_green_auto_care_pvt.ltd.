@@ -12,7 +12,7 @@ const BUSINESS_CONFIG = {
         middleName: "",
         lastName: "Shrestha",
         fullName: "Mr. Rabi Shrestha",       // Displayed in header & vCard
-        title: "Proprietor",              // Job title / designation
+        title: "CEO",              // Job title / designation
     },
 
     // --- Company Details ---
