@@ -108,21 +108,41 @@ document.addEventListener('DOMContentLoaded', () => {
         saveContactBtn.addEventListener('click', (e) => {
             e.preventDefault();
 
-            // Build social URL lines dynamically
-            const socialUrlLines = cfg.socials.map(s =>
-                `URL;type=${s.platform}:${s.url}`
-            ).join('\n');
+            // Extract clean JPEG photo Base64 (required by iOS and Android Contacts)
+            let photoBase64 = (cfg.vcard && cfg.vcard.photoBase64 ? cfg.vcard.photoBase64 : '')
+                .replace(/^data:image\/[a-zA-Z]+;base64,/, '')
+                .replace(/[\r\n\s]/g, '');
 
-            const socialProfileLines = cfg.socials.map(s =>
-                `X-SOCIALPROFILE;type=${s.platform.toLowerCase()}:${s.url}`
-            ).join('\n');
+            // Fallback: If not in config, generate a square JPEG avatar from the page logo
+            if (!photoBase64) {
+                try {
+                    const logoImg = document.getElementById('logo');
+                    if (logoImg && logoImg.complete && logoImg.naturalWidth > 0) {
+                        const canvas = document.createElement('canvas');
+                        const size = 500;
+                        canvas.width = size;
+                        canvas.height = size;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, size, size);
 
-            // Build phone number lines dynamically (supports multiple numbers)
-            const phoneLines = cfg.contact.phones.map(p =>
-                `TEL;TYPE=${p.label.toUpperCase()},VOICE:${p.number}`
-            ).join('\n');
+                        const maxDim = 420;
+                        const scale = Math.min(maxDim / logoImg.naturalWidth, maxDim / logoImg.naturalHeight);
+                        const w = logoImg.naturalWidth * scale;
+                        const h = logoImg.naturalHeight * scale;
+                        const x = (size - w) / 2;
+                        const y = (size - h) / 2;
+                        ctx.drawImage(logoImg, x, y, w, h);
+                        photoBase64 = canvas.toDataURL('image/jpeg', 0.9)
+                            .replace(/^data:image\/[a-zA-Z]+;base64,/, '')
+                            .replace(/[\r\n\s]/g, '');
+                    }
+                } catch (err) {
+                    console.warn('Canvas photo fallback error:', err);
+                }
+            }
 
-            const vcardContent = [
+            const vcardLines = [
                 'BEGIN:VCARD',
                 'VERSION:3.0',
                 // Company name as the primary display name for the contact
@@ -130,18 +150,55 @@ document.addEventListener('DOMContentLoaded', () => {
                 `N:${cfg.company.name};;;;`,
                 `ORG:${cfg.company.name}`,
                 `TITLE:${cfg.person.fullName} - ${cfg.person.title}`,
-                `NOTE:${cfg.vcard.contactNote}`,
-                `PHOTO;ENCODING=b;TYPE=PNG:${cfg.vcard.photoBase64}`,
-                phoneLines,
-                `EMAIL;TYPE=PREF,INTERNET:${cfg.contact.email}`,
-                `URL;type=Location:${cfg.contact.locationUrl}`,
-                `URL;type=WhatsApp:https://wa.me/${cfg.contact.whatsapp}`,
-                socialUrlLines,
-                socialProfileLines,
-                `ADR;TYPE=WORK:;;${cfg.vcard.addressStreet};${cfg.vcard.addressCity};${cfg.vcard.addressState};;${cfg.vcard.addressCountry}`,
-                'END:VCARD',
-            ].join('\n');
+            ];
 
+            if (cfg.vcard && cfg.vcard.contactNote) {
+                vcardLines.push(`NOTE:${cfg.vcard.contactNote}`);
+            }
+
+            // Contact profile photo (JPEG base64)
+            if (photoBase64) {
+                vcardLines.push(`PHOTO;ENCODING=b;TYPE=JPEG:${photoBase64}`);
+            }
+
+            // Phone numbers
+            if (cfg.contact && cfg.contact.phones) {
+                cfg.contact.phones.forEach(p => {
+                    if (p.number) {
+                        vcardLines.push(`TEL;TYPE=${(p.label || 'WORK').toUpperCase()},VOICE:${p.number}`);
+                    }
+                });
+            }
+
+            // Email
+            if (cfg.contact && cfg.contact.email) {
+                vcardLines.push(`EMAIL;TYPE=PREF,INTERNET:${cfg.contact.email}`);
+            }
+
+            // Location & WhatsApp
+            if (cfg.contact && cfg.contact.locationUrl) {
+                vcardLines.push(`URL;type=Location:${cfg.contact.locationUrl}`);
+            }
+            if (cfg.contact && cfg.contact.whatsapp) {
+                vcardLines.push(`URL;type=WhatsApp:https://wa.me/${cfg.contact.whatsapp}`);
+            }
+
+            // Social media links & profiles
+            if (cfg.socials && cfg.socials.length) {
+                cfg.socials.forEach(s => {
+                    vcardLines.push(`URL;type=${s.platform}:${s.url}`);
+                    vcardLines.push(`X-SOCIALPROFILE;type=${s.platform.toLowerCase()}:${s.url}`);
+                });
+            }
+
+            // Address
+            if (cfg.vcard && (cfg.vcard.addressStreet || cfg.vcard.addressCity)) {
+                vcardLines.push(`ADR;TYPE=WORK:;;${cfg.vcard.addressStreet || ''};${cfg.vcard.addressCity || ''};${cfg.vcard.addressState || ''};;${cfg.vcard.addressCountry || ''}`);
+            }
+
+            vcardLines.push('END:VCARD');
+
+            const vcardContent = vcardLines.join('\r\n');
             const blob = new Blob([vcardContent], { type: 'text/vcard;charset=utf-8' });
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
