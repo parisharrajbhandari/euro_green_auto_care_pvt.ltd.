@@ -8,11 +8,11 @@ const BUSINESS_CONFIG = {
 
     // --- Personal Details ---
     person: {
-        firstName: "Rabi",
-        middleName: "",
-        lastName: "Shrestha",
-        fullName: "Mr. Rabi Shrestha",       // Displayed in header & vCard
-        title: "CEO",              // Job title / designation
+        firstName: "Euro",
+        middleName: "Green",
+        lastName: "Motors",
+        fullName: "Euro Green Motors",       // Displayed in header & vCard
+        title: "",              // Job title / designation
     },
 
     // --- Company Details ---
