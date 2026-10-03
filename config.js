@@ -11,7 +11,7 @@ const BUSINESS_CONFIG = {
         firstName: "Euro",
         middleName: "Green",
         lastName: "Auto Care",
-        fullName: "Euro Green Autocare",       // Displayed in header & vCard
+        fullName: "Euro Green Autocare Pvt. Ltd.",       // Displayed in header & vCard
         title: "",              // Job title / designation
     },
 
